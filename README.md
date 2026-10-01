@@ -10,35 +10,23 @@ Industrial computer-vision reference implementation for pharmaceutical capsule i
 
 ## Live pipeline evidence
 
-The following is the full dataset-matched capsule-belt animation. It contains 180 frames, 36 real source capsule images, and 6,480 object decisions. The animation is generated from the same `Normal`/`Anomaly` image archive used for training, so the CSV can compare every model prediction with the source label. Green boxes indicate predicted `normal`; red boxes indicate predicted `defective`.
+The following is the full one-minute dataset-matched capsule-belt animation. It contains 1,440 frames, 36 real source capsule images, and 51,840 object decisions. The animation is generated from the same `Normal`/`Anomaly` image archive used for training, so the CSV can compare every model prediction with the source label. Green boxes indicate predicted `normal`; red boxes indicate predicted `defective`.
 
-<video controls preload="metadata" width="100%" poster="https://raw.githubusercontent.com/HUSNAIN-MUNAWAR/pharma-capsule-vision/main/artifacts/video-annotated-full/annotated_frame.png">
+<video controls autoplay loop muted playsinline preload="metadata" width="1280" height="720" poster="https://raw.githubusercontent.com/HUSNAIN-MUNAWAR/pharma-capsule-vision/main/artifacts/video-annotated-full/annotated_frame.png">
   <source src="https://raw.githubusercontent.com/HUSNAIN-MUNAWAR/pharma-capsule-vision/main/artifacts/video-annotated-full/annotated_full.mp4" type="video/mp4">
   Your browser does not support embedded video. Use the MP4 link below.
 </video>
 
-[Open or download the full annotated MP4](https://github.com/HUSNAIN-MUNAWAR/pharma-capsule-vision/raw/refs/heads/main/artifacts/video-annotated-full/annotated_full.mp4) | [Browser-compatible WebM](https://github.com/HUSNAIN-MUNAWAR/pharma-capsule-vision/raw/refs/heads/main/artifacts/video-annotated-full/annotated_full.webm)
+[Open or download the full one-minute MP4](https://github.com/HUSNAIN-MUNAWAR/pharma-capsule-vision/raw/refs/heads/main/artifacts/video-annotated-full/annotated_full.mp4) | [Browser-compatible WebM](https://github.com/HUSNAIN-MUNAWAR/pharma-capsule-vision/raw/refs/heads/main/artifacts/video-annotated-full/annotated_full.webm)
 
-## Project summary
+## Dashboard preview
 
-| Area | Implementation |
-|---|---|
-| Inspection task | Binary capsule classification: `Normal` vs `Anomaly` |
-| Image data | 1,200 public pharmaceutical capsule images: 600 normal and 600 anomalous |
-| Model protocol | Four baseline families plus ConvNeXt-Tiny full fine-tuning; 100-epoch ceiling with early stopping |
-| Selected model | ConvNeXt-Tiny, selected using validation defective-class F1 only |
-| Held-out result | 1.0000 accuracy, precision, recall, and F1 on the fixed 180-image test split |
-| Video integration | 180-frame dataset-matched belt animation with 6,480 per-capsule decisions |
-| Animation audit | 6,300 / 6,480 predictions match source labels (97.22%; not factory-video accuracy) |
-| Runtime | FastAPI `/health`, `/ready`, and `/predict` endpoints with structured request logs |
-| Operator experience | Industrial dark-mode dashboard with video controls, KPI cards, confusion matrix, and evidence links |
-| Engineering controls | Ruff, mypy, pytest, artifact validation, Docker, model card, and compliance checklist |
-
-These metrics are evidence for this dataset split and protocol, not a production guarantee. Independent labelled factory data, threshold calibration, camera-shift testing, and operator review are required before deployment.
+![Industrial capsule inspection dashboard](artifacts/dashboard/inspection-console.png)
 
 ## Table of contents
 
 - [Live pipeline evidence](#live-pipeline-evidence)
+- [Dashboard preview](#dashboard-preview)
 - [Project summary](#project-summary)
 - [System architecture](#system-architecture)
   - [Architecture diagram](#architecture-diagram)
@@ -55,6 +43,23 @@ These metrics are evidence for this dataset split and protocol, not a production
 - [Compliance and limitations](#compliance-and-limitations)
 - [Task alignment](#task-alignment)
 - [References](#references)
+
+## Project summary
+
+| Area | Implementation |
+|---|---|
+| Inspection task | Binary capsule classification: `Normal` vs `Anomaly` |
+| Image data | 1,200 public pharmaceutical capsule images: 600 normal and 600 anomalous |
+| Model protocol | Four baseline families plus ConvNeXt-Tiny full fine-tuning; 100-epoch ceiling with early stopping |
+| Selected model | ConvNeXt-Tiny, selected using validation defective-class F1 only |
+| Held-out result | 1.0000 accuracy, precision, recall, and F1 on the fixed 180-image test split |
+| Video integration | 1,440-frame / 60-second dataset-matched belt animation with 51,840 per-capsule decisions |
+| Animation audit | 50,400 / 51,840 predictions match source labels (97.22%; not factory-video accuracy) |
+| Runtime | FastAPI `/health`, `/ready`, and `/predict` endpoints with structured request logs |
+| Operator experience | Industrial dark-mode dashboard with video controls, KPI cards, confusion matrix, and evidence links |
+| Engineering controls | Ruff, mypy, pytest, artifact validation, Docker, model card, and compliance checklist |
+
+These metrics are evidence for this dataset split and protocol, not a production guarantee. Independent labelled factory data, threshold calibration, camera-shift testing, and operator review are required before deployment.
 
 ## System architecture
 
@@ -185,7 +190,7 @@ The final evidence deliberately uses one labelled source of truth for both the m
 - `frame_predictions.csv` records frame number, object ID, source image, ground truth, predicted class, confidence, and box coordinates.
 - `video_summary.json` records the seed, checkpoint, frame count, class counts, and animation-set audit result.
 
-The checked-in run is 180 frames at 24 FPS, 7.5 seconds, with 36 unique source capsules and 6,480 object decisions. The 97.22% match rate is a controlled integration audit; it is not evidence of performance on a real production camera. Real target-line footage must be independently annotated for deployment acceptance.
+The checked-in run is 1,440 frames at 24 FPS, 60 seconds, with 36 unique source capsules and 51,840 object decisions. The 97.22% match rate is a controlled integration audit; it is not evidence of performance on a real production camera. Real target-line footage must be independently annotated for deployment acceptance.
 
 Reproducible details are in [`docs/video_reference.md`](docs/video_reference.md). Dataset provenance and download instructions are in [`docs/dataset_provenance.md`](docs/dataset_provenance.md). Raw data, source videos, and local checkpoints are deliberately excluded from the public repository.
 
@@ -269,7 +274,7 @@ python -m defect_detector.cli split --data-dir data/real/pharmaceutical_capsules
 python scripts/benchmark_models.py --data-dir data/real/pharmaceutical_capsules/extracted/datasets --output-dir artifacts/model-retrain --models convnext_tiny --image-size 128 --batch-size 32 --learning-rate 0.0001 --epochs 100 --patience 10 --fine-tune --seed 42 --device cpu
 Copy-Item artifacts/model-retrain/convnext_tiny/best.pt models/best.pt -Force
 python -m defect_detector.cli evaluate --data-dir data/real/pharmaceutical_capsules/extracted/datasets --checkpoint models/best.pt --output-dir artifacts/model-retrain/selected/evaluation --device cpu
-python scripts/generate_capsule_belt_animation.py --data-dir data/real/pharmaceutical_capsules/extracted/datasets --checkpoint models/best.pt --output-dir artifacts/video-annotated-full --frames 180 --fps 24 --seed 42 --asset-count 36 --device cpu
+python scripts/generate_capsule_belt_animation.py --data-dir data/real/pharmaceutical_capsules/extracted/datasets --checkpoint models/best.pt --output-dir artifacts/video-annotated-full --frames 1440 --fps 24 --seed 42 --asset-count 36 --device cpu
 ```
 
 ## Inference API

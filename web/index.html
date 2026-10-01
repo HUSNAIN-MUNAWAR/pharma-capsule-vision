@@ -68,8 +68,8 @@
           </article>
           <article class="metric-card">
             <span class="metric-label">Object decisions</span>
-            <strong>6,480</strong>
-            <small>3,420 normal / 3,060 defective</small>
+            <strong>51,840</strong>
+            <small>27,360 normal / 24,480 defective</small>
           </article>
           <article class="metric-card">
             <span class="metric-label">Object mode</span>
@@ -85,12 +85,15 @@
                 <p class="eyebrow">OBJECT-LEVEL CAPSULE FEED</p>
                 <h3>Gelatin capsules on inspection belt</h3>
               </div>
-              <span class="panel-tag">FULL RUN / 180 FRAMES / 6,480 DECISIONS</span>
+              <span class="panel-tag">FULL RUN / 1 MIN / 1,440 FRAMES / 51,840 DECISIONS</span>
             </div>
             <div class="video-frame">
               <video
                 id="inspectionVideo"
                 controls
+                autoplay
+                loop
+                muted
                 playsinline
                 preload="metadata"
                 poster="../artifacts/video-annotated-full/annotated_frame.png"
@@ -126,7 +129,7 @@
                 <div><span>Image benchmark</span><strong>ConvNeXt-Tiny / 100% held out</strong></div>
                 <div><span>Video classifier</span><strong>ConvNeXt-Tiny crops</strong></div>
                 <div><span>Object source</span><strong>36 labelled capsule sprites</strong></div>
-                <div><span>Video audit</span><strong class="muted-value">97.2% / 6,300 of 6,480</strong></div>
+                <div><span>Video audit</span><strong class="muted-value">97.2% / 50,400 of 51,840</strong></div>
               </div>
             </article>
 

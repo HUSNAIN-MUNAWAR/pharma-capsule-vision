@@ -23,7 +23,7 @@ python scripts/generate_capsule_belt_animation.py `
   --data-dir data/real/pharmaceutical_capsules/extracted/datasets `
   --checkpoint models/best.pt `
   --output-dir artifacts/video-annotated-full `
-  --frames 180 `
+  --frames 1440 `
   --fps 24 `
   --seed 42 `
   --asset-count 36 `
@@ -32,7 +32,7 @@ python scripts/generate_capsule_belt_animation.py `
 
 The command writes:
 
-- `annotated_full.mp4`: full 180-frame annotated animation;
+- `annotated_full.mp4`: full 1,440-frame / 60-second annotated animation;
 - `annotated_full.webm`: browser-compatible dashboard copy;
 - `annotated_frame.png`: poster frame;
 - `frame_predictions.csv`: one row per capsule decision per frame, including source path, ground truth, prediction, confidence, and box coordinates;
@@ -40,12 +40,12 @@ The command writes:
 
 ## Final evidence run
 
-The checked-in run is 7.5 seconds at 24 FPS:
+The checked-in run is 60 seconds at 24 FPS:
 
-- `180` frames;
+- `1,440` frames;
 - `36` unique source capsules;
-- `6,480` rendered object decisions;
-- balanced source ground truth: `3,240` normal and `3,240` defective;
-- `6,300 / 6,480` decisions match the source label (`97.22%` animation-set audit).
+- `51,840` rendered object decisions;
+- balanced source ground truth: `25,920` normal and `25,920` defective;
+- `50,400 / 51,840` decisions match the source label (`97.22%` animation-set audit).
 
 The `97.22%` figure is not a replacement for independent factory-video accuracy. It measures the selected model while the same labelled capsule images are repeatedly rendered into a belt scene. Production acceptance still requires labelled footage from the target camera, product, lighting, and line speed.
