@@ -37,8 +37,8 @@ These metrics are evidence for this dataset split and protocol, not a production
 
 ## Table of contents
 
-- [Project summary](#project-summary)
 - [Live pipeline evidence](#live-pipeline-evidence)
+- [Project summary](#project-summary)
 - [System architecture](#system-architecture)
   - [Architecture diagram](#architecture-diagram)
   - [End-to-end sequence](#end-to-end-sequence)
