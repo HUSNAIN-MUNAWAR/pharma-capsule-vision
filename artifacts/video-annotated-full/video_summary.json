@@ -1,0 +1,16 @@
+{
+  "video_path": "D:\\Spark AI Task\\data\\external\\automatic-capsule-production-line.mp4",
+  "checkpoint_path": "D:\\Spark AI Task\\models\\best.pt",
+  "source_fps": 29.769420367689687,
+  "source_dimensions": {
+    "width": 640,
+    "height": 368
+  },
+  "source_frames_read": 871,
+  "sample_every": 1,
+  "sampled_frames": 871,
+  "predicted_class_counts": {
+    "defective": 871
+  },
+  "annotated_video": "D:\\Spark AI Task\\artifacts\\video-annotated-full\\annotated_sampled.mp4"
+}

@@ -1,0 +1,5 @@
+model,pretrained,parameters,training_seconds,best_epoch,epochs_completed,early_stopped,best_validation_f1_defective,accuracy,precision_defective,recall_defective,f1_defective,f1_macro,checkpoint
+efficientnet_b0,True,4010110,526.53,10,20,True,0.7979274611398963,0.7833333333333333,0.8148148148148148,0.7333333333333333,0.7719298245614035,0.7827903091060986,D:\Spark AI Task\artifacts\model-benchmark\efficientnet_b0\best.pt
+mobilenet_v3_small,True,1519906,507.31,57,67,True,0.780952380952381,0.7555555555555555,0.7446808510638298,0.7777777777777778,0.7608695652173914,0.7554347826086957,D:\Spark AI Task\artifacts\model-benchmark\mobilenet_v3_small\best.pt
+resnet18,True,11177538,239.86,3,13,True,0.6880733944954128,0.6,0.6071428571428571,0.5666666666666667,0.5862068965517241,0.5995550611790879,D:\Spark AI Task\artifacts\model-benchmark\resnet18\best.pt
+small_cnn,False,93954,274.59,1,11,True,0.0,0.5,0.0,0.0,0.0,0.3333333333333333,D:\Spark AI Task\artifacts\model-benchmark\small_cnn\best.pt

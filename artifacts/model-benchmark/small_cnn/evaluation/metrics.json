@@ -1,0 +1,28 @@
+{
+  "accuracy": 0.5,
+  "precision_defective": 0.0,
+  "recall_defective": 0.0,
+  "f1_defective": 0.0,
+  "precision_macro": 0.25,
+  "recall_macro": 0.5,
+  "f1_macro": 0.3333333333333333,
+  "support": {
+    "normal": 90,
+    "defective": 90
+  },
+  "confusion_matrix": [
+    [
+      90,
+      0
+    ],
+    [
+      90,
+      0
+    ]
+  ],
+  "positive_class": "defective",
+  "mean_defective_probability": 0.437972002559238,
+  "test_loss": 0.7007836633258395,
+  "model_version": "small_cnn-seed42-epoch1",
+  "threshold": 0.5
+}

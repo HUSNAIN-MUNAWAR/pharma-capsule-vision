@@ -1,0 +1,28 @@
+{
+  "accuracy": 0.7833333333333333,
+  "precision_defective": 0.8148148148148148,
+  "recall_defective": 0.7333333333333333,
+  "f1_defective": 0.7719298245614035,
+  "precision_macro": 0.7861952861952861,
+  "recall_macro": 0.7833333333333333,
+  "f1_macro": 0.7827903091060986,
+  "support": {
+    "normal": 90,
+    "defective": 90
+  },
+  "confusion_matrix": [
+    [
+      75,
+      15
+    ],
+    [
+      24,
+      66
+    ]
+  ],
+  "positive_class": "defective",
+  "mean_defective_probability": 0.4950505818757746,
+  "test_loss": 0.5317629741297828,
+  "model_version": "efficientnet_b0-seed42-epoch10",
+  "threshold": 0.5
+}

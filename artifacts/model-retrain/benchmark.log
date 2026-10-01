@@ -1,0 +1,29 @@
+2026-10-01T22:46:40+0500 INFO defect_detector.data Discovered 600 normal images
+2026-10-01T22:46:40+0500 INFO defect_detector.data Discovered 600 defective images
+2026-10-01T22:46:40+0500 INFO defect_detector.data train split: 808 images ({'defective': 404, 'normal': 404})
+2026-10-01T22:46:40+0500 INFO defect_detector.data validation split: 212 images ({'defective': 106, 'normal': 106})
+2026-10-01T22:46:40+0500 INFO defect_detector.data test split: 180 images ({'defective': 90, 'normal': 90})
+2026-10-01T22:48:19+0500 INFO defect_detector.model Built convnext_tiny (pretrained=True, freeze_backbone=False)
+2026-10-01T22:50:46+0500 INFO defect_detector.training epoch=1 train_loss=0.6997 val_loss=0.6678 val_f1=0.1565
+2026-10-01T22:53:08+0500 INFO defect_detector.training epoch=2 train_loss=0.4543 val_loss=0.0998 val_f1=0.9859
+2026-10-01T22:55:17+0500 INFO defect_detector.training epoch=3 train_loss=0.1817 val_loss=0.1022 val_f1=0.9453
+2026-10-01T22:57:59+0500 INFO defect_detector.training epoch=4 train_loss=0.1569 val_loss=0.0710 val_f1=0.9659
+2026-10-01T23:00:06+0500 INFO defect_detector.training epoch=5 train_loss=0.1170 val_loss=0.0827 val_f1=0.9557
+2026-10-01T23:02:28+0500 INFO defect_detector.training epoch=6 train_loss=0.0837 val_loss=0.2136 val_f1=0.9099
+2026-10-01T23:04:39+0500 INFO defect_detector.training epoch=7 train_loss=0.0593 val_loss=0.0298 val_f1=0.9709
+2026-10-01T23:07:03+0500 INFO defect_detector.training epoch=8 train_loss=0.0508 val_loss=0.0059 val_f1=1.0000
+2026-10-01T23:09:54+0500 INFO defect_detector.training epoch=9 train_loss=0.0507 val_loss=0.0163 val_f1=0.9953
+2026-10-01T23:12:55+0500 INFO defect_detector.training epoch=10 train_loss=0.0194 val_loss=0.0071 val_f1=0.9953
+2026-10-01T23:14:55+0500 INFO defect_detector.training epoch=11 train_loss=0.0562 val_loss=0.0106 val_f1=0.9905
+2026-10-01T23:16:59+0500 INFO defect_detector.training epoch=12 train_loss=0.0524 val_loss=0.0057 val_f1=1.0000
+2026-10-01T23:18:40+0500 INFO defect_detector.training epoch=13 train_loss=0.0311 val_loss=0.0042 val_f1=1.0000
+2026-10-01T23:20:18+0500 INFO defect_detector.training epoch=14 train_loss=0.0357 val_loss=0.0029 val_f1=1.0000
+2026-10-01T23:21:52+0500 INFO defect_detector.training epoch=15 train_loss=0.0196 val_loss=0.0023 val_f1=1.0000
+2026-10-01T23:23:27+0500 INFO defect_detector.training epoch=16 train_loss=0.0277 val_loss=0.0034 val_f1=1.0000
+2026-10-01T23:25:13+0500 INFO defect_detector.training epoch=17 train_loss=0.0250 val_loss=0.0028 val_f1=1.0000
+2026-10-01T23:27:01+0500 INFO defect_detector.training epoch=18 train_loss=0.0110 val_loss=0.0023 val_f1=1.0000
+2026-10-01T23:27:01+0500 INFO defect_detector.training Early stopping after 10 epochs without validation improvement
+2026-10-01T23:27:02+0500 INFO defect_detector.training Saved best checkpoint to artifacts\model-retrain\convnext_tiny\best.pt
+2026-10-01T23:27:04+0500 INFO defect_detector.model Built convnext_tiny (pretrained=False, freeze_backbone=False)
+2026-10-01T23:27:11+0500 INFO defect_detector.evaluation test_f1_defective=1.0000 test_recall_defective=1.0000 errors=0
+2026-10-01T23:27:11+0500 INFO defect_detector.model Built convnext_tiny (pretrained=False, freeze_backbone=False)

@@ -1,0 +1,28 @@
+{
+  "accuracy": 1.0,
+  "precision_defective": 1.0,
+  "recall_defective": 1.0,
+  "f1_defective": 1.0,
+  "precision_macro": 1.0,
+  "recall_macro": 1.0,
+  "f1_macro": 1.0,
+  "support": {
+    "normal": 90,
+    "defective": 90
+  },
+  "confusion_matrix": [
+    [
+      90,
+      0
+    ],
+    [
+      0,
+      90
+    ]
+  ],
+  "positive_class": "defective",
+  "mean_defective_probability": 0.499646035097976,
+  "test_loss": 0.00540317443115378,
+  "model_version": "convnext_tiny-seed42-epoch8",
+  "threshold": 0.5
+}

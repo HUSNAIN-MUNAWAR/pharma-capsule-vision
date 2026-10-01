@@ -1,0 +1,2 @@
+model,pretrained,freeze_backbone,parameters,training_seconds,best_epoch,epochs_completed,early_stopped,best_validation_f1_defective,accuracy,precision_defective,recall_defective,f1_defective,f1_macro,checkpoint
+convnext_tiny,True,False,27821666,2422.48,8,18,True,1.0,1.0,1.0,1.0,1.0,1.0,D:\Spark AI Task\artifacts\model-retrain\convnext_tiny\best.pt

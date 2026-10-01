@@ -1,0 +1,42 @@
+{
+  "selection_metric": "best_validation_f1_defective",
+  "test_metrics_are_report_only": true,
+  "ranking": [
+    {
+      "model": "convnext_tiny",
+      "pretrained": true,
+      "freeze_backbone": false,
+      "parameters": 27821666,
+      "training_seconds": 2422.48,
+      "best_epoch": 8,
+      "epochs_completed": 18,
+      "early_stopped": true,
+      "best_validation_f1_defective": 1.0,
+      "accuracy": 1.0,
+      "precision_defective": 1.0,
+      "recall_defective": 1.0,
+      "f1_defective": 1.0,
+      "f1_macro": 1.0,
+      "checkpoint": "D:\\Spark AI Task\\artifacts\\model-retrain\\convnext_tiny\\best.pt"
+    }
+  ],
+  "all_runs": [
+    {
+      "model": "convnext_tiny",
+      "pretrained": true,
+      "freeze_backbone": false,
+      "parameters": 27821666,
+      "training_seconds": 2422.48,
+      "best_epoch": 8,
+      "epochs_completed": 18,
+      "early_stopped": true,
+      "best_validation_f1_defective": 1.0,
+      "accuracy": 1.0,
+      "precision_defective": 1.0,
+      "recall_defective": 1.0,
+      "f1_defective": 1.0,
+      "f1_macro": 1.0,
+      "checkpoint": "D:\\Spark AI Task\\artifacts\\model-retrain\\convnext_tiny\\best.pt"
+    }
+  ]
+}

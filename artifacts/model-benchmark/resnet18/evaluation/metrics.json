@@ -1,0 +1,28 @@
+{
+  "accuracy": 0.6,
+  "precision_defective": 0.6071428571428571,
+  "recall_defective": 0.5666666666666667,
+  "f1_defective": 0.5862068965517241,
+  "precision_macro": 0.6004464285714286,
+  "recall_macro": 0.6,
+  "f1_macro": 0.5995550611790879,
+  "support": {
+    "normal": 90,
+    "defective": 90
+  },
+  "confusion_matrix": [
+    [
+      57,
+      33
+    ],
+    [
+      39,
+      51
+    ]
+  ],
+  "positive_class": "defective",
+  "mean_defective_probability": 0.49824701249599457,
+  "test_loss": 0.6629399471812778,
+  "model_version": "resnet18-seed42-epoch3",
+  "threshold": 0.5
+}

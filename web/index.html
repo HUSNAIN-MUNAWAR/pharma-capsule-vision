@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Capsule Vision / Line Monitor</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="brand-copy">
+          <p class="eyebrow">NEXUS / QA</p>
+          <h1>Capsule<br />Vision</h1>
+        </div>
+
+        <nav class="nav" aria-label="Primary navigation">
+          <a class="nav-item active" href="#overview"><span class="nav-icon">◈</span>Overview</a>
+          <a class="nav-item" href="#video"><span class="nav-icon">▶</span>Line video</a>
+          <a class="nav-item" href="#evidence"><span class="nav-icon">▤</span>Evidence</a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="status-dot"></div>
+          <div>
+            <strong>System nominal</strong>
+            <span>Inference service ready</span>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-content" id="overview">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">PHARMACEUTICAL INSPECTION / PRODUCTION LINE 01</p>
+            <p class="breadcrumb">Operations <span>/</span> Visual quality console</p>
+          </div>
+          <div class="topbar-meta">
+            <span class="live-pill"><i></i>Pipeline online</span>
+            <time id="clock" datetime=""></time>
+          </div>
+        </header>
+
+        <section class="hero-heading">
+          <div>
+            <p class="eyebrow accent">RUN 2026.10.01 / FINAL CHECKPOINT</p>
+            <h2>Production line monitor</h2>
+            <p class="subhead">Annotated inspection playback and model assurance.</p>
+          </div>
+          <div class="checkpoint-chip">
+            <span class="chip-label">ACTIVE CHECKPOINT</span>
+            <strong>ConvNeXt-Tiny</strong>
+            <span class="chip-meta">seed42 · epoch08 · CPU</span>
+          </div>
+        </section>
+
+        <section class="metrics-grid" aria-label="Run metrics">
+          <article class="metric-card primary">
+            <span class="metric-label">Held-out accuracy</span>
+            <strong>100.0<span>%</span></strong>
+            <small>180 / 180 classified correctly</small>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Defective F1</span>
+            <strong>1.000</strong>
+            <small>precision 1.000 · recall 1.000</small>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Video coverage</span>
+            <strong>871</strong>
+            <small>frames annotated · 29.77 FPS</small>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Model state</span>
+            <strong class="state-good">READY</strong>
+            <small>API smoke test · HTTP 200</small>
+          </article>
+        </section>
+
+        <section class="content-grid" id="video">
+          <article class="panel video-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">ANNOTATED LINE FEED</p>
+                <h3>Automatic capsule production line</h3>
+              </div>
+              <span class="panel-tag">FULL RUN · 871 FRAMES</span>
+            </div>
+            <div class="video-frame">
+              <video
+                id="inspectionVideo"
+                controls
+                playsinline
+                preload="metadata"
+                poster="../artifacts/video-annotated-full/annotated_frame.png"
+                aria-label="Fully annotated pharmaceutical capsule production line video"
+              >
+                <source src="../artifacts/video-annotated-full/annotated_full.webm" type="video/webm" />
+                <source src="../artifacts/video-annotated-full/annotated_full.mp4" type="video/mp4" />
+                Your browser does not support MP4 playback.
+              </video>
+              <div class="video-overlay">
+                <span class="overlay-label"><i></i>ANNOTATION ACTIVE</span>
+                <span id="videoState">READY TO PLAY</span>
+              </div>
+              <button id="playButton" class="play-button" type="button" aria-label="Play annotated video">▶</button>
+            </div>
+            <div class="video-controls-row">
+              <button id="restartButton" class="text-button" type="button">↺ Restart</button>
+              <div class="progress-track" aria-hidden="true"><span id="progressFill"></span></div>
+              <span id="timecode">00:00 / 00:00</span>
+            </div>
+          </article>
+
+          <aside class="side-stack">
+            <article class="panel run-panel">
+              <div class="panel-header compact">
+                <div>
+                  <p class="eyebrow">RUN SUMMARY</p>
+                  <h3>Inspection assurance</h3>
+                </div>
+                <span class="checkmark">✓</span>
+              </div>
+              <div class="summary-list">
+                <div><span>Dataset</span><strong>Capsule Normal / Anomaly</strong></div>
+                <div><span>Test set</span><strong>90 normal · 90 defective</strong></div>
+                <div><span>Training</span><strong>18 epochs · early stop</strong></div>
+                <div><span>Video labels</span><strong class="muted-value">Unlabeled / integration</strong></div>
+              </div>
+            </article>
+
+            <article class="panel confusion-panel">
+              <div class="panel-header compact">
+                <div>
+                  <p class="eyebrow">CONFUSION MATRIX</p>
+                  <h3>Test split</h3>
+                </div>
+                <span class="matrix-key"><i class="normal-key"></i>normal <i class="defect-key"></i>defective</span>
+              </div>
+              <div class="matrix-grid" aria-label="Confusion matrix">
+                <span></span><span class="matrix-axis">NORMAL</span><span class="matrix-axis">DEFECTIVE</span>
+                <span class="matrix-axis vertical">NORMAL</span><strong>90</strong><strong>0</strong>
+                <span class="matrix-axis vertical">DEFECTIVE</span><strong>0</strong><strong>90</strong>
+              </div>
+            </article>
+          </aside>
+        </section>
+
+        <section class="panel evidence-panel" id="evidence">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">TRACEABILITY</p>
+              <h3>Evidence package</h3>
+            </div>
+            <span class="panel-tag green">AUDIT READY</span>
+          </div>
+          <div class="evidence-links">
+            <a href="../artifacts/model-retrain/selected/evaluation/metrics.json" target="_blank"><span>Metrics JSON</span><b>↗</b></a>
+            <a href="../artifacts/model-retrain/convnext_tiny/training_history.csv" target="_blank"><span>Training history</span><b>↗</b></a>
+            <a href="../artifacts/video-annotated-full/video_summary.json" target="_blank"><span>Video summary</span><b>↗</b></a>
+            <a href="../README.md" target="_blank"><span>Project README</span><b>↗</b></a>
+          </div>
+        </section>
+
+        <footer class="footer-note">
+          <span>REAL CAPSULE ARCHIVE · CONVNEXT-TINY · VALIDATION-SELECTED</span>
+          <span>Video is a domain-shift integration asset, not a labeled accuracy set.</span>
+        </footer>
+      </main>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>
