@@ -1,34 +1,51 @@
-# Pharmaceutical inspection video reference and pipeline test asset
+# Dataset-matched capsule-belt animation
 
-## Downloaded MP4 used for final pipeline testing
+The published video is a controlled, dataset-matched animation generated from the same labelled pharmaceutical capsule archive used for training. This makes the object-level demo auditable: every visible capsule has a source image, a `Normal` or `Anomaly` ground-truth label, and a recorded model decision.
 
-The repository downloads the following direct MP4 from **Shijiazhuang Huajia Medicinal Capsule Co., Ltd.**:
+This replaces an unlabeled stock or factory clip for the primary evidence run. It is intentionally not presented as real factory footage. A separately annotated factory recording remains a required deployment-validation asset.
 
-- Factory video page: <https://www.hjjn.com.cn/hello-world/>
-- Automatic capsule production line: <https://www.hjjn.com.cn/wp-content/uploads/2022/09/Automatic-capsule-production-line.mp4>
-- Capsule printing process: <https://www.hjjn.com.cn/wp-content/uploads/2022/09/Printing-on-capsules.mp4>
+## Source data and rendering contract
 
-The first file is approximately 1:27 and is used by `scripts/video_inference.py`. It is a real recorded capsule-production-line video, but it is not frame-labelled as Normal/Anomaly. The video run is therefore a pipeline/integration test (decode -> sample -> encode -> model -> annotated MP4), not an accuracy test. Accuracy remains measured on the labelled capsule image dataset.
+- Source directory: `data/real/pharmaceutical_capsules/extracted/datasets`
+- Classes: `Normal` and `Anomaly`, mapped to `normal` and `defective`
+- Renderer seed: `42`
+- Unique source capsules: `36` balanced assets
+- Layout: three moving belt lanes on a 1280 x 720 canvas
+- Model: the selected `ConvNeXt-Tiny` checkpoint at `models/best.pt`
+- Annotation colors: predicted `normal` is green; predicted `defective` is red
+
+The renderer places real source images into a deterministic capsule-belt scene, classifies each source crop with the checkpoint, and writes the prediction and source label together. The animation is therefore a pipeline and alignment test rather than a new independent model test.
+
+## Reproduce the full run
 
 ```powershell
-python scripts/video_inference.py `
-  --video data/external/automatic-capsule-production-line.mp4 `
+python scripts/generate_capsule_belt_animation.py `
+  --data-dir data/real/pharmaceutical_capsules/extracted/datasets `
   --checkpoint models/best.pt `
-  --output-dir artifacts/video-test `
-  --sample-every 30 `
-  --max-frames 120 `
+  --output-dir artifacts/video-annotated-full `
+  --frames 180 `
+  --fps 24 `
+  --seed 42 `
+  --asset-count 36 `
   --device cpu
 ```
 
-Outputs are `frame_predictions.csv`, `video_summary.json`, and `annotated_sampled.mp4`.
+The command writes:
 
-## Additional inspection-machine reference
+- `annotated_full.mp4`: full 180-frame annotated animation;
+- `annotated_full.webm`: browser-compatible dashboard copy;
+- `annotated_frame.png`: poster frame;
+- `frame_predictions.csv`: one row per capsule decision per frame, including source path, ground truth, prediction, confidence, and box coordinates;
+- `video_summary.json`: reproducibility metadata and ground-truth audit counts.
 
-The real-world inspection workflow is also represented by the official **Netra VS6 Tablet Inspection** page from Accura Pharmaquip:
+## Final evidence run
 
-- Company/product page: <https://www.netra-accura.com/video.html>
-- Embedded video 1: <https://www.youtube.com/watch?v=fsGr3qTU8lQ>
-- Embedded video 2: <https://www.youtube.com/watch?v=QDMC3J7E8cM>
+The checked-in run is 7.5 seconds at 24 FPS:
 
-The page describes high-speed pharmaceutical tablet inspection, defect sorting, and reporting, and identifies Accura Pharmaquip as a manufacturer of pharmaceutical/food inspection systems. The videos are used only as an industry-context reference for the assessment presentation; they are not scraped into the repository or used as training data.
+- `180` frames;
+- `36` unique source capsules;
+- `6,480` rendered object decisions;
+- balanced source ground truth: `3,240` normal and `3,240` defective;
+- `6,300 / 6,480` decisions match the source label (`97.22%` animation-set audit).
 
+The `97.22%` figure is not a replacement for independent factory-video accuracy. It measures the selected model while the same labelled capsule images are repeatedly rendered into a belt scene. Production acceptance still requires labelled footage from the target camera, product, lighting, and line speed.

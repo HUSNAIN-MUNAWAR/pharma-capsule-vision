@@ -20,19 +20,22 @@ flowchart LR
     P --> D
     J --> Q[Evaluation]
     Q --> R[Metrics + FP/FN analysis]
-    S[Huajia capsule-production MP4] --> T[Frame sampler]
-    T --> D
-    D --> U[Prediction + annotated MP4]
+    S[Labelled capsule image archive] --> T[Balanced sprite selection]
+    T --> V[Dataset-matched belt renderer]
+    V --> U[ConvNeXt-Tiny per-capsule inference]
+    U --> W[Green/red annotations + ground-truth audit]
 ```
 
 The selected retraining path is ConvNeXt-Tiny with official pretrained weights and full
 backbone fine-tuning. The baseline models use frozen pretrained backbones and trained classifier
-heads; the test set is report-only and is not used for model selection.
+heads; the test set is report-only and is not used for model selection. The published video
+demonstration uses the selected ConvNeXt-Tiny checkpoint on real labelled capsule images rendered
+into a deterministic moving-belt scene. Each decision is retained with its source ground truth.
 
 ## Operational boundaries
 
 - Training and evaluation are offline jobs; they write versioned artifacts and do not modify raw images.
 - Inference is a read-only process over a checkpoint and does not download data or model weights at request time.
 - The model decision is not a safety certification. Low-confidence predictions should be routed to manual review.
-- The image dataset has Normal/Anomaly labels; the factory MP4 is unlabeled and is used for end-to-end video/domain-shift validation, not accuracy scoring.
+- The image dataset has Normal/Anomaly labels; the generated capsule-belt MP4 retains those labels for an animation-set audit. It is not real factory footage and is not a substitute for labelled target-line validation.
 

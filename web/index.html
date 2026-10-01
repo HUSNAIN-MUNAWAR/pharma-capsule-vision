@@ -33,7 +33,7 @@
       <main class="main-content" id="overview">
         <header class="topbar">
           <div>
-            <p class="eyebrow">PHARMACEUTICAL INSPECTION / PRODUCTION LINE 01</p>
+            <p class="eyebrow">PHARMACEUTICAL INSPECTION / CAPSULE BELT / OBJECT MODE</p>
             <p class="breadcrumb">Operations <span>/</span> Visual quality console</p>
           </div>
           <div class="topbar-meta">
@@ -44,37 +44,37 @@
 
         <section class="hero-heading">
           <div>
-            <p class="eyebrow accent">RUN 2026.10.01 / FINAL CHECKPOINT</p>
-            <h2>Production line monitor</h2>
-            <p class="subhead">Annotated inspection playback and model assurance.</p>
+            <p class="eyebrow accent">RUN 2026.10.02 / OBJECT-LEVEL VIDEO</p>
+            <h2>Capsule belt monitor</h2>
+            <p class="subhead">Per-capsule decisions with green normal and red defective overlays.</p>
           </div>
           <div class="checkpoint-chip">
-            <span class="chip-label">ACTIVE CHECKPOINT</span>
+            <span class="chip-label">VIDEO CLASSIFIER</span>
             <strong>ConvNeXt-Tiny</strong>
-            <span class="chip-meta">seed42 · epoch08 · CPU</span>
+            <span class="chip-meta">seed42 / epoch08 / CPU</span>
           </div>
         </section>
 
         <section class="metrics-grid" aria-label="Run metrics">
           <article class="metric-card primary">
-            <span class="metric-label">Held-out accuracy</span>
+            <span class="metric-label">Selected image accuracy</span>
             <strong>100.0<span>%</span></strong>
-            <small>180 / 180 classified correctly</small>
+            <small>ConvNeXt-Tiny / 180 / 180 held out</small>
           </article>
           <article class="metric-card">
-            <span class="metric-label">Defective F1</span>
+            <span class="metric-label">Selected image F1</span>
             <strong>1.000</strong>
             <small>precision 1.000 · recall 1.000</small>
           </article>
           <article class="metric-card">
-            <span class="metric-label">Video coverage</span>
-            <strong>871</strong>
-            <small>frames annotated · 29.77 FPS</small>
+            <span class="metric-label">Object decisions</span>
+            <strong>6,480</strong>
+            <small>3,420 normal / 3,060 defective</small>
           </article>
           <article class="metric-card">
-            <span class="metric-label">Model state</span>
+            <span class="metric-label">Object mode</span>
             <strong class="state-good">READY</strong>
-            <small>API smoke test · HTTP 200</small>
+            <small>green normal / red defective</small>
           </article>
         </section>
 
@@ -82,10 +82,10 @@
           <article class="panel video-panel">
             <div class="panel-header">
               <div>
-                <p class="eyebrow">ANNOTATED LINE FEED</p>
-                <h3>Automatic capsule production line</h3>
+                <p class="eyebrow">OBJECT-LEVEL CAPSULE FEED</p>
+                <h3>Gelatin capsules on inspection belt</h3>
               </div>
-              <span class="panel-tag">FULL RUN · 871 FRAMES</span>
+              <span class="panel-tag">FULL RUN / 180 FRAMES / 6,480 DECISIONS</span>
             </div>
             <div class="video-frame">
               <video
@@ -94,7 +94,7 @@
                 playsinline
                 preload="metadata"
                 poster="../artifacts/video-annotated-full/annotated_frame.png"
-                aria-label="Fully annotated pharmaceutical capsule production line video"
+                aria-label="Per-capsule annotated gelatin capsule belt video"
               >
                 <source src="../artifacts/video-annotated-full/annotated_full.webm" type="video/webm" />
                 <source src="../artifacts/video-annotated-full/annotated_full.mp4" type="video/mp4" />
@@ -123,10 +123,10 @@
                 <span class="checkmark">✓</span>
               </div>
               <div class="summary-list">
-                <div><span>Dataset</span><strong>Capsule Normal / Anomaly</strong></div>
-                <div><span>Test set</span><strong>90 normal · 90 defective</strong></div>
-                <div><span>Training</span><strong>18 epochs · early stop</strong></div>
-                <div><span>Video labels</span><strong class="muted-value">Unlabeled / integration</strong></div>
+                <div><span>Image benchmark</span><strong>ConvNeXt-Tiny / 100% held out</strong></div>
+                <div><span>Video classifier</span><strong>ConvNeXt-Tiny crops</strong></div>
+                <div><span>Object source</span><strong>36 labelled capsule sprites</strong></div>
+                <div><span>Video audit</span><strong class="muted-value">97.2% / 6,300 of 6,480</strong></div>
               </div>
             </article>
 
@@ -159,13 +159,14 @@
             <a href="../artifacts/model-retrain/selected/evaluation/metrics.json" target="_blank"><span>Metrics JSON</span><b>↗</b></a>
             <a href="../artifacts/model-retrain/convnext_tiny/training_history.csv" target="_blank"><span>Training history</span><b>↗</b></a>
             <a href="../artifacts/video-annotated-full/video_summary.json" target="_blank"><span>Video summary</span><b>↗</b></a>
+            <a href="../artifacts/video-annotated-full/frame_predictions.csv" target="_blank"><span>Object predictions CSV</span><b>↗</b></a>
             <a href="../README.md" target="_blank"><span>Project README</span><b>↗</b></a>
           </div>
         </section>
 
         <footer class="footer-note">
-          <span>REAL CAPSULE ARCHIVE · CONVNEXT-TINY · VALIDATION-SELECTED</span>
-          <span>Video is a domain-shift integration asset, not a labeled accuracy set.</span>
+          <span>REAL CAPSULE ARCHIVE · DATASET-MATCHED ANIMATION</span>
+          <span>Green/red = model predictions; CSV includes source ground truth.</span>
         </footer>
       </main>
     </div>

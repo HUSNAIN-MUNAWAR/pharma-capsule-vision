@@ -1,16 +1,28 @@
 {
-  "video_path": "D:\\Spark AI Task\\data\\external\\automatic-capsule-production-line.mp4",
+  "video_type": "dataset_matched_animation",
+  "source_dataset": "D:\\Spark AI Task\\data\\real\\pharmaceutical_capsules\\extracted\\datasets",
   "checkpoint_path": "D:\\Spark AI Task\\models\\best.pt",
-  "source_fps": 29.769420367689687,
-  "source_dimensions": {
-    "width": 640,
-    "height": 368
+  "frames": 180,
+  "fps": 24,
+  "duration_seconds": 7.5,
+  "unique_capsules_rendered": 36,
+  "object_decisions": 6480,
+  "ground_truth_available": true,
+  "ground_truth_class_counts": {
+    "defective": 3240,
+    "normal": 3240
   },
-  "source_frames_read": 871,
-  "sample_every": 1,
-  "sampled_frames": 871,
   "predicted_class_counts": {
-    "defective": 871
+    "defective": 3060,
+    "normal": 3420
   },
-  "annotated_video": "D:\\Spark AI Task\\artifacts\\video-annotated-full\\annotated_sampled.mp4"
+  "correct_object_decisions": 6300,
+  "object_accuracy": 0.972222,
+  "annotation_semantics": {
+    "normal": "green",
+    "defective": "red",
+    "box_color_source": "predicted_class"
+  },
+  "annotated_video": "D:\\Spark AI Task\\artifacts\\video-annotated-full\\annotated_full.mp4",
+  "interpretation": "Every visible object originates from the labelled capsule dataset; metrics are animation-set checks, not factory-video accuracy."
 }
