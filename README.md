@@ -1,90 +1,215 @@
-# Visual Defect Detector
+# Pharma Capsule Vision
 
-Production-oriented computer vision reference implementation for classifying manufacturing product images as `normal` or `defective`.
+![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-inference-009688?logo=fastapi&logoColor=white)
+![Domain](https://img.shields.io/badge/domain-pharmaceutical%20inspection-1f6feb)
+![Status](https://img.shields.io/badge/status-reproducible%20reference%20implementation-2ea44f)
 
-Assessment inputs are intentionally excluded from this public repository. This repository uses a real pharmaceutical capsule inspection dataset from Chukyo University’s industrial-vision archive. Synthetic image data has been removed from the working dataset.
+Industrial computer-vision platform for pharmaceutical capsule inspection. The project trains and benchmarks multiple classifiers on a real capsule image dataset, evaluates a selected model on a held-out split, runs inference over a real capsule-production video, exposes a FastAPI service, and presents the evidence in a compact industrial dashboard.
 
-The raw dataset, source factory videos, and 106 MB trained checkpoint are also excluded from Git history. The documented download, training, and video-inference commands recreate them locally; compact metrics, curves, the dashboard screenshot, and the browser-playable annotated video are included as evidence.
+## Live pipeline evidence
 
-## What is included
+The following is the full annotated MP4 produced by the final video-inference run. It contains predictions on all 871 source frames. The source video is an unlabeled integration/domain-shift asset, so these annotations demonstrate pipeline behavior and are not used to claim video accuracy.
 
-- Dataset inventory, corruption/duplicate checks, deterministic stratified train/validation/test manifests.
-- PyTorch training with augmentation, class-weighted loss, early stopping, checkpoints, and reproducible seeds.
-- Five benchmarkable model families: `small_cnn`, `resnet18`, `mobilenet_v3_small`, `efficientnet_b0`, and `convnext_tiny`.
-- Precision, recall, F1, confusion matrix, confidence thresholding, and false-positive/false-negative error analysis.
-- FastAPI inference service with input validation, structured logs, request IDs, health checks, and model readiness checks.
-- Docker image, architecture documentation, model card, compliance checklist, tests, linting, and static typing configuration.
+<video controls preload="metadata" width="100%" poster="https://raw.githubusercontent.com/HUSNAIN-MUNAWAR/pharma-capsule-vision/main/artifacts/video-annotated-full/annotated_frame.png">
+  <source src="https://raw.githubusercontent.com/HUSNAIN-MUNAWAR/pharma-capsule-vision/main/artifacts/video-annotated-full/annotated_full.mp4" type="video/mp4">
+  Your browser does not support embedded video. Use the MP4 link below.
+</video>
 
-## Dataset contract
+[Open or download the full annotated MP4](https://github.com/HUSNAIN-MUNAWAR/pharma-capsule-vision/raw/refs/heads/main/artifacts/video-annotated-full/annotated_full.mp4) · [Browser-compatible WebM](https://github.com/HUSNAIN-MUNAWAR/pharma-capsule-vision/raw/refs/heads/main/artifacts/video-annotated-full/annotated_full.webm)
 
-The loader accepts either the assessment names (`normal/defective`) or the source dataset names (`Normal/Anomaly`):
+## Project summary
 
-```text
-data/raw/
-├── normal/
-│   ├── product-001.jpg
-│   └── ...
-└── defective/
-    ├── product-101.jpg
-    └── ...
+| Area | Implementation |
+|---|---|
+| Inspection task | Binary capsule classification: `Normal` vs `Anomaly` |
+| Image data | 1,200 real pharmaceutical capsule images: 600 normal and 600 anomalous |
+| Model protocol | Four baseline families plus ConvNeXt-Tiny full fine-tuning; 100-epoch ceiling with early stopping |
+| Selected model | ConvNeXt-Tiny, selected using validation defective-class F1 only |
+| Held-out result | 1.0000 accuracy, precision, recall, and F1 on the fixed 180-image test split |
+| Video integration | Full 871-frame annotated run from a real capsule-production MP4 |
+| Runtime | FastAPI `/health`, `/ready`, and `/predict` endpoints with structured request logs |
+| Operator experience | Industrial dark-mode dashboard with live video controls, KPI cards, confusion matrix, and evidence links |
+| Engineering controls | Ruff, mypy, pytest, artifact validation, Docker, model card, and compliance checklist |
+
+These metrics are evidence for this dataset split and protocol, not a production guarantee. Independent factory data, threshold calibration, camera-shift testing, and operator review are required before deployment.
+
+## Table of contents
+
+- [Project summary](#project-summary)
+- [Live pipeline evidence](#live-pipeline-evidence)
+- [System architecture](#system-architecture)
+  - [Architecture diagram](#architecture-diagram)
+  - [End-to-end sequence](#end-to-end-sequence)
+  - [Runtime state model](#runtime-state-model)
+  - [Deployment and evidence flow](#deployment-and-evidence-flow)
+- [Dataset and video alignment](#dataset-and-video-alignment)
+- [Model training and benchmarking](#model-training-and-benchmarking)
+- [Quickstart](#quickstart)
+- [Inference API](#inference-api)
+- [Industrial dashboard](#industrial-dashboard)
+- [Repository layout](#repository-layout)
+- [Quality gates](#quality-gates)
+- [Compliance and limitations](#compliance-and-limitations)
+- [Task alignment](#task-alignment)
+- [References](#references)
+
+## System architecture
+
+### Architecture diagram
+
+```mermaid
+flowchart LR
+    A[Real capsule image archive] --> B[Inventory and data validation]
+    B --> C[Duplicate and corruption checks]
+    C --> D[Deterministic stratified split]
+
+    D --> E1[SmallCNN from scratch]
+    D --> E2[ResNet18 transfer head]
+    D --> E3[MobileNetV3-Small transfer head]
+    D --> E4[EfficientNet-B0 transfer head]
+    D --> E5[ConvNeXt-Tiny full fine-tune]
+
+    E1 --> F[Validation metrics and training curves]
+    E2 --> F
+    E3 --> F
+    E4 --> F
+    E5 --> F
+    F --> G[Select by validation defective F1]
+    G --> H[Held-out test report]
+    H --> I[Versioned model metadata]
+
+    I --> J[FastAPI inference service]
+    J --> K[Image prediction endpoint]
+    J --> L[Video frame inference]
+    L --> M[Annotated MP4/WebM evidence]
+    K --> N[Industrial dashboard]
+    M --> N
+    H --> N
 ```
 
-The real dataset used here is:
+The training and serving paths are intentionally separate. The API loads an immutable checkpoint at startup; it never silently retrains or downloads weights during a request. The dashboard consumes the service contract and versioned evidence artifacts rather than embedding training logic.
 
-```text
-data/real/pharmaceutical_capsules/extracted/datasets/
-├── Normal/    # 600 industrial-camera capsule images
-└── Anomaly/   # 600 anomalous capsule images
+### End-to-end sequence
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Operator
+    participant Dataset as Dataset validator
+    participant Trainer as Benchmark runner
+    participant Registry as Evidence artifacts
+    participant API as FastAPI service
+    participant Model as ConvNeXt-Tiny
+    participant UI as Inspection dashboard
+
+    Operator->>Dataset: Provide capsule image directory
+    Dataset->>Dataset: Inspect labels, files, duplicates, and split integrity
+    Dataset-->>Trainer: Deterministic train/validation/test manifests
+    Trainer->>Trainer: Train each candidate with identical protocol
+    Trainer->>Registry: Write history, curves, metrics, confusion matrix
+    Trainer->>Registry: Select using validation defective F1
+    Registry-->>API: Load selected checkpoint and metadata
+    Operator->>API: Upload image or start video inference
+    API->>Model: Preprocess and classify frame
+    Model-->>API: Class probabilities and confidence
+    API-->>Operator: Structured prediction with request ID
+    API->>Registry: Persist annotated video and run summary
+    UI->>Registry: Load video, KPIs, metrics, and evidence links
+    Registry-->>UI: Render operator-facing inspection console
 ```
 
-or pass any directory containing `normal/` and `defective/` recursively with `--data-dir`. Supported formats are JPEG, PNG, BMP, TIFF, and WebP. A split is rejected when it cannot retain both classes, avoiding misleading validation metrics on tiny data.
+### Runtime state model
 
-## Quickstart
-
-PowerShell:
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -e ".[dev]"
-
-New-Item -ItemType Directory -Force data/external | Out-Null
-Invoke-WebRequest -Uri "https://isl.sist.chukyo-u.ac.jp/wp-content/uploads/2025/12/datasets.zip" -OutFile "data/external/medicinal_capsule_dataset.zip"
-Expand-Archive data/external/medicinal_capsule_dataset.zip -DestinationPath data/real/pharmaceutical_capsules/extracted
-
-python -m defect_detector.cli inspect --data-dir data/real/pharmaceutical_capsules/extracted/datasets --output-dir artifacts/pharma-inspection
-python scripts/benchmark_models.py --data-dir data/real/pharmaceutical_capsules/extracted/datasets --output-dir artifacts/model-benchmark --epochs 100 --patience 10 --batch-size 64 --device cpu
-Copy-Item artifacts/model-retrain/convnext_tiny/best.pt models/best.pt -Force
-python -m defect_detector.cli evaluate --data-dir data/real/pharmaceutical_capsules/extracted/datasets --checkpoint models/best.pt --output-dir artifacts/model-retrain/selected/evaluation --device cpu
-uvicorn defect_detector.api:app --host 0.0.0.0 --port 8000
+```mermaid
+stateDiagram-v2
+    [*] --> DatasetUnvalidated
+    DatasetUnvalidated --> DatasetReady: inspect + integrity checks pass
+    DatasetUnvalidated --> DataRejected: corrupt, empty, or invalid labels
+    DataRejected --> DatasetUnvalidated: correct source data
+    DatasetReady --> Training
+    Training --> CandidateEvaluated: epoch metrics written
+    CandidateEvaluated --> Training: patience not exhausted
+    CandidateEvaluated --> ModelSelected: validation defective F1 improves
+    CandidateEvaluated --> ModelSelected: early stopping reached
+    ModelSelected --> TestReported: held-out test evaluated once
+    TestReported --> ServiceReady: checkpoint and metadata load
+    ServiceReady --> ImageInferred: valid image request
+    ServiceReady --> VideoRunning: video integration run
+    ServiceReady --> ServiceFault: missing or invalid checkpoint
+    ImageInferred --> ServiceReady
+    VideoRunning --> EvidenceWritten: annotated frames and summary saved
+    EvidenceWritten --> ServiceReady
+    ServiceFault --> [*]
 ```
 
-Then:
+### Deployment and evidence flow
 
-```powershell
-curl.exe http://localhost:8000/health
-curl.exe -X POST http://localhost:8000/predict -F "file=@data/real/pharmaceutical_capsules/extracted/datasets/Anomaly/001.png"
+```mermaid
+flowchart TB
+    subgraph Build[Reproducible build and verification]
+        B1[Source code] --> B2[ruff format/check]
+        B1 --> B3[mypy]
+        B1 --> B4[pytest]
+        B1 --> B5[artifact validator]
+        B2 --> B6[Verified commit]
+        B3 --> B6
+        B4 --> B6
+        B5 --> B6
+    end
+
+    subgraph Runtime[Local or container runtime]
+        R1[Docker or Python environment] --> R2[FastAPI]
+        R2 --> R3[Image endpoint]
+        R2 --> R4[Video inference worker]
+        R4 --> R5[Annotated video]
+    end
+
+    subgraph Review[Human review surface]
+        V1[Dashboard] --> V2[KPIs and confusion matrix]
+        V1 --> V3[Video player]
+        V1 --> V4[Metrics and run evidence]
+    end
+
+    B6 --> Runtime
+    R5 --> Review
+    B6 --> Review
 ```
 
-For video integration testing, follow [`docs/video_reference.md`](docs/video_reference.md) to download the real capsule-production MP4 and run `scripts/video_inference.py`.
+## Dataset and video alignment
 
-For the real capsule dataset, the benchmark initializes the transfer-learning candidates from ImageNet weights when they are available, freezes their backbones, and trains their two-class heads on the capsule images. `small_cnn` is trained from scratch. The benchmark command below trains all four candidates on the same split.
+The image and video assets are matched at the product/process-domain level:
 
-## Training and evaluation
+- The image dataset is a public research archive of pharmaceutical capsule inspection images from Chukyo University. It contains `Normal` and `Anomaly` labels and is used for supervised training and held-out evaluation.
+- The final integration video is a real pharmaceutical capsule-production line recording associated with Shijiazhuang Huajia Medicinal Capsule Co., Ltd. It is used for end-to-end frame inference and annotation.
+- The video has no frame-level ground truth in this repository. Its correct role is domain-shift and pipeline validation, not accuracy scoring.
+- The final video run read 871 frames at the source frame rate and wrote an annotation for every frame. Summary data is available in [`video_summary.json`](artifacts/video-annotated-full/video_summary.json) and per-frame predictions in [`frame_predictions.csv`](artifacts/video-annotated-full/frame_predictions.csv).
 
-```powershell
-python -m defect_detector.cli inspect --data-dir data/real/pharmaceutical_capsules/extracted/datasets --output-dir artifacts/pharma-inspection
-python -m defect_detector.cli split --data-dir data/real/pharmaceutical_capsules/extracted/datasets --output-dir data/processed/pharma-manifests --seed 42
-python scripts/benchmark_models.py --data-dir data/real/pharmaceutical_capsules/extracted/datasets --output-dir artifacts/model-benchmark --epochs 100 --patience 10 --batch-size 64 --device cpu
-Copy-Item artifacts/model-retrain/convnext_tiny/best.pt models/best.pt -Force
-python -m defect_detector.cli evaluate --data-dir data/real/pharmaceutical_capsules/extracted/datasets --checkpoint models/best.pt --output-dir artifacts/model-retrain/selected/evaluation --device cpu
-```
+Dataset provenance and reproducible download instructions are documented in [`docs/dataset_provenance.md`](docs/dataset_provenance.md). The raw dataset and source videos are deliberately not committed; the public repository contains the generated evidence required to inspect the completed pipeline.
 
-The checkpoint stores the class mapping, normalization, image size, decision threshold, and training metadata. Evaluation writes `metrics.json`, `confusion_matrix.csv`, `errors.csv`, and a confusion-matrix PNG. In production, the threshold should be selected on validation data against the business cost of missed defects versus unnecessary manual inspection; the default `0.5` is only a starting point.
+## Model training and benchmarking
 
-## Model benchmark and selection
+All candidates use the same deterministic split (`808` train, `212` validation, `180` test), seed `42`, image size `128`, and a 100-epoch ceiling. The benchmark selects on validation defective-class F1; the test set is report-only.
 
-Run the candidates against the same real Normal/Anomaly split:
+| Model | Role | Accuracy | Defective precision | Defective recall | Defective F1 |
+|---|---|---:|---:|---:|---:|
+| EfficientNet-B0 | Frozen-head transfer baseline | 0.7833 | 0.8148 | 0.7333 | 0.7719 |
+| MobileNetV3-Small | Lightweight transfer baseline | 0.7556 | 0.7447 | 0.7778 | 0.7609 |
+| ResNet18 | Stable transfer baseline | 0.6000 | 0.6071 | 0.5667 | 0.5862 |
+| SmallCNN | From-scratch control | 0.5000 | 0.0000 | 0.0000 | 0.0000 |
+| ConvNeXt-Tiny | Full fine-tuning, selected run | **1.0000** | **1.0000** | **1.0000** | **1.0000** |
+
+The ConvNeXt-Tiny run used official pretrained weights, full-backbone fine-tuning, learning rate `1e-4`, batch size `32`, ReduceLROnPlateau, and patience-10 early stopping. It stopped at epoch 18 with its best checkpoint at epoch 8. The checkpoint is intentionally not committed because it is approximately 106 MB; the documented command recreates it locally.
+
+Evidence directories:
+
+- [`artifacts/model-benchmark`](artifacts/model-benchmark): baseline benchmark CSV/JSON, logs, curves, and evaluation reports.
+- [`artifacts/model-retrain`](artifacts/model-retrain): ConvNeXt-Tiny retraining run and selected evaluation evidence.
+- [`artifacts/pharma-inspection/dataset_report.json`](artifacts/pharma-inspection/dataset_report.json): dataset inventory and integrity report.
+- [`compliance/model_card.md`](compliance/model_card.md): intended use, metrics, limitations, and risk notes.
+
+### Reproduce the benchmark
 
 ```powershell
 python scripts/benchmark_models.py `
@@ -97,30 +222,7 @@ python scripts/benchmark_models.py `
   --device cpu
 ```
 
-The script writes `benchmark.csv` and `benchmark.json`, selecting by best validation defective-class F1. The test-set metrics are report-only and are not used for model selection. Each model directory also contains `best.pt`, `run_config.json`, split manifests, `training_history.json`, `training_history.csv`, `training_curves.png`, and an evaluation directory. The protocol uses a 100-epoch ceiling, `ReduceLROnPlateau` (factor 0.2, patience 3), and early stopping after 10 validation epochs without defective-F1 improvement. This prioritizes catching defects while controlling manual-review volume. The final model should be selected from the benchmark plus measured p95 latency and operational review cost, not from accuracy alone.
-
-The completed CPU baseline benchmark on the real dataset selected EfficientNet-B0 by validation defective-class F1. The test metrics below are final report-only measurements. All four models used seed 42, the same 808/212/180 stratified split, 128-pixel inputs, and batch size 64:
-
-| Model | Params | Best / completed epoch | Train min | Accuracy | Defective precision | Defective recall | Defective F1 |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| EfficientNet-B0 | 4.01M | 10 / 20 | 8.78 | **0.7833** | **0.8148** | 0.7333 | **0.7719** |
-| MobileNetV3-Small | 1.52M | 57 / 67 | 8.46 | 0.7556 | 0.7447 | **0.7778** | 0.7609 |
-| ResNet18 | 11.18M | 3 / 13 | 4.00 | 0.6000 | 0.6071 | 0.5667 | 0.5862 |
-| SmallCNN | 0.09M | 1 / 11 | 4.58 | 0.5000 | 0.0000 | 0.0000 | 0.0000 |
-
-### Stronger architecture search and ConvNeXt retraining
-
-The initial benchmark trained only the classifier heads of pretrained backbones. A second search considered stronger industrial-inspection candidates: ConvNeXt-Tiny, EfficientNetV2-S, DenseNet121, Swin-Tiny, and ResNet50. TorchVision provides official pretrained weights for these model families in its model catalog. A recent controlled packaging study compared ResNet18, EfficientNet-B0, MobileNetV3-Small, and ConvNeXt-Tiny under the same protocol, while capsule-inspection research reports that domain-specific transfer learning and improved feature extraction can exceed 90% on related—but different—datasets. Those results are research references, not guarantees for this dataset. ([TorchVision model catalog](https://docs.pytorch.org/vision/master/models.html), [controlled packaging study](https://doi.org/10.1145/3816713.3820244), [pharmaceutical capsule inspection study](https://onlinelibrary.wiley.com/doi/10.1155/2022/4820618), [RACNN capsule study](https://onlinelibrary.wiley.com/doi/10.1155/2020/8887723))
-
-| Candidate | Intended role | Status |
-|---|---|---|
-| ConvNeXt-Tiny | Modern high-capacity CNN; full fine-tuning | Selected and retrained |
-| EfficientNetV2-S | Accuracy/efficiency trade-off for transfer learning | Candidate for follow-up |
-| DenseNet121 | Dense multi-scale feature reuse for texture defects | Candidate for follow-up |
-| Swin-Tiny | Windowed attention for fine-grained structure | Candidate for follow-up |
-| ResNet50 | Deeper, stable CNN reference baseline | Candidate for follow-up |
-
-ConvNeXt-Tiny was retrained with official pretrained weights and full-backbone fine-tuning (`learning_rate=1e-4`, batch size 32, 100-epoch ceiling, scheduler, and patience-10 early stopping):
+### Reproduce the selected ConvNeXt-Tiny run
 
 ```powershell
 python scripts/benchmark_models.py `
@@ -137,45 +239,51 @@ python scripts/benchmark_models.py `
   --device cpu
 ```
 
-The ConvNeXt-Tiny run stopped at epoch 18 with its best checkpoint at epoch 8. On this fixed 180-image held-out test split (90 normal, 90 defective), it achieved 1.0000 accuracy, defective precision 1.0000, defective recall 1.0000, and defective F1 1.0000. This is strong evidence for this benchmark split, not a production guarantee; independent factory data and repeated validation are still required.
+## Quickstart
 
-Promote the ConvNeXt-Tiny checkpoint for local API/Docker testing:
+### Install
 
 ```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -e ".[dev]"
+```
+
+### Download the real capsule dataset
+
+```powershell
+New-Item -ItemType Directory -Force data/external | Out-Null
+Invoke-WebRequest -Uri "https://isl.sist.chukyo-u.ac.jp/wp-content/uploads/2025/12/datasets.zip" -OutFile "data/external/medicinal_capsule_dataset.zip"
+Expand-Archive data/external/medicinal_capsule_dataset.zip -DestinationPath data/real/pharmaceutical_capsules/extracted
+```
+
+### Inspect, train, and evaluate
+
+```powershell
+python -m defect_detector.cli inspect --data-dir data/real/pharmaceutical_capsules/extracted/datasets --output-dir artifacts/pharma-inspection
+python -m defect_detector.cli split --data-dir data/real/pharmaceutical_capsules/extracted/datasets --output-dir data/processed/pharma-manifests --seed 42
+python scripts/benchmark_models.py --data-dir data/real/pharmaceutical_capsules/extracted/datasets --output-dir artifacts/model-benchmark --epochs 100 --patience 10 --batch-size 64 --device cpu
 Copy-Item artifacts/model-retrain/convnext_tiny/best.pt models/best.pt -Force
+python -m defect_detector.cli evaluate --data-dir data/real/pharmaceutical_capsules/extracted/datasets --checkpoint models/best.pt --output-dir artifacts/model-retrain/selected/evaluation --device cpu
 ```
 
-## Design decisions
+### Run the API
 
-ResNet18 remains a pragmatic baseline for a small visual dataset: it has a mature implementation, good CPU latency, and a transferable feature extractor. ConvNeXt-Tiny is the selected retrained model because full fine-tuning produced the highest measured result in this run. The final classifier is replaced with a two-class head. Augmentation is applied only to training data. Validation/test data use deterministic resizing and ImageNet normalization. Class-weighted cross entropy handles imbalance without duplicating samples; this is easy to audit and avoids changing the empirical test distribution.
-
-The service is deliberately separated from training. The API loads an immutable checkpoint at startup and exposes `/health`, `/ready`, and `/predict`. It never silently retrains or downloads weights on a request. Invalid content types, oversized payloads, corrupt images, and missing model artifacts return explicit HTTP errors and structured logs.
-
-```mermaid
-flowchart LR
-    A[Chukyo industrial-camera capsule images\nNormal / Anomaly] --> B[Inventory + duplicate checks]
-    B --> C[Stratified train / validation / test split]
-    C --> D1[small_cnn from scratch]
-    C --> D2[ResNet18 frozen-head transfer]
-    C --> D3[MobileNetV3-Small frozen-head transfer]
-    C --> D4[EfficientNet-B0 frozen-head transfer]
-    C --> D5[ConvNeXt-Tiny full fine-tuning]
-    D1 --> E[Validation curves + best checkpoint]
-    D2 --> E
-    D3 --> E
-    D4 --> E
-    D5 --> E
-    E --> F[Select by validation defective F1]
-    F --> G[Final held-out test report]
-    G --> H[FastAPI image inference]
-    I[Huajia capsule-production MP4] --> J[Frame sampler]
-    J --> H
-    H --> K[Prediction + confidence + annotated MP4]
+```powershell
+uvicorn defect_detector.api:app --host 0.0.0.0 --port 8000
 ```
 
-The image and video assets are matched at the product/process-domain level: both concern pharmaceutical capsule manufacturing and inspection. The public image archive has ground-truth Normal/Anomaly labels; the company MP4 is not frame-labelled, so its use is an end-to-end video/domain-shift test rather than an accuracy benchmark.
+## Inference API
 
-## API response
+The service loads the model configured by `DEFECT_MODEL_PATH` or defaults to `models/best.pt`.
+
+```powershell
+curl.exe http://localhost:8000/health
+curl.exe http://localhost:8000/ready
+curl.exe -X POST http://localhost:8000/predict -F "file=@data/real/pharmaceutical_capsules/extracted/datasets/Anomaly/001.png"
+```
+
+Example response:
 
 ```json
 {
@@ -183,39 +291,88 @@ The image and video assets are matched at the product/process-domain level: both
   "predicted_class": "defective",
   "confidence": 0.9731,
   "probabilities": {"normal": 0.0269, "defective": 0.9731},
-  "model_version": "demo"
+  "model_version": "convnext_tiny-seed42-epoch8"
 }
 ```
 
-## Quality gates
+The API validates content type, payload size, image readability, model readiness, and prediction output. Logs include request IDs and latency so a deployment can connect predictions to an operational trace.
 
-```powershell
-ruff check src scripts tests testing
-mypy src
-pytest
-```
+## Industrial dashboard
 
-## Limitations and next steps
-
-- The pharmaceutical dataset is public research data, not customer-owned production data. Do not report its metrics as performance for a specific pharmaceutical company or factory.
-- The binary image-level formulation does not localize defect pixels. If operators need visual explanations, add Grad-CAM and review it with domain experts.
-- Before deployment, calibrate the threshold, test camera/lighting/product-shift slices, add a human-review queue for low confidence, and record data lineage.
-- The first production release should benchmark the actual camera resolution and hardware, export to ONNX/TensorRT if needed, and load-test p95/p99 latency.
-- The assessment asks for a 2–3 minute video; `docs/demo_script.md` contains a concise recording outline and the recorded MP4 test command.
-
-## Pharmaceutical factory video reference
-
-The final pipeline test uses the real capsule-production MP4 from [Shijiazhuang Huajia Medicinal Capsule Co., Ltd.](https://www.hjjn.com.cn/hello-world/); see [`docs/video_reference.md`](docs/video_reference.md). Accura Pharmaquip’s official [Netra VS6 page](https://www.netra-accura.com/video.html) and its [inspection video 1](https://www.youtube.com/watch?v=fsGr3qTU8lQ) are additional inspection-machine references.
-
-## Industrial inspection dashboard
-
-The local dashboard is intentionally compact: active checkpoint, held-out metrics, full-run annotated video, confusion matrix, and direct evidence links. It uses the 871-frame ConvNeXt-Tiny annotated MP4 generated from the real capsule-production video.
+The dashboard is a static operator-facing console served from the repository root. It presents the active model, held-out metrics, confusion matrix, full-run annotated video, and direct evidence links.
 
 ```powershell
 python scripts/serve_dashboard.py --port 8765
 ```
 
-Open <http://127.0.0.1:8765/web/>. The player loads the browser-native [`annotated_full.webm`](artifacts/video-annotated-full/annotated_full.webm) and keeps [`annotated_full.mp4`](artifacts/video-annotated-full/annotated_full.mp4) as the MP4 fallback/download. Both contain an inference annotation on every source frame. The video is unlabeled, so the dashboard marks it as an integration/domain-shift asset rather than an accuracy set.
+Open <http://127.0.0.1:8765/web/>. The player uses the browser-compatible [`annotated_full.webm`](artifacts/video-annotated-full/annotated_full.webm) and keeps [`annotated_full.mp4`](artifacts/video-annotated-full/annotated_full.mp4) as the MP4 fallback and download asset.
 
-![Capsule Vision industrial inspection dashboard](artifacts/dashboard/inspection-console.png)
+![Industrial capsule inspection dashboard](artifacts/dashboard/inspection-console.png)
 
+## Repository layout
+
+```text
+.
+├── artifacts/       # benchmark reports, metrics, curves, screenshot, annotated video
+├── compliance/      # data protection checklist and model card
+├── docs/            # architecture, provenance, demo, and video reference
+├── scripts/         # benchmark, video inference, validation, and dashboard server
+├── src/             # typed application and ML package
+├── testing/         # testing strategy and review notes
+├── tests/           # unit and API tests
+├── web/             # dashboard HTML, CSS, and JavaScript
+├── Dockerfile
+├── docker-compose.yml
+└── pyproject.toml
+```
+
+Assessment inputs, raw data, source videos, local checkpoints, caches, and generated package metadata are excluded by [`.gitignore`](.gitignore). This keeps the public repository reproducible without publishing the task PDF or extracted task text.
+
+## Quality gates
+
+The completed implementation was checked with:
+
+```powershell
+ruff format --check src scripts tests testing
+ruff check src scripts tests testing
+mypy src
+pytest
+python scripts/validate_artifacts.py
+```
+
+The current evidence contains seven passing tests, successful static typing, clean lint/format checks, and validated selected-run artifacts. The test suite covers data discovery/splits, model construction, and API behavior.
+
+## Compliance and limitations
+
+- The capsule image dataset is public research data, not customer-owned production data. Do not represent these metrics as performance for a specific pharmaceutical company or factory.
+- The factory video is used for integration testing because it is not frame-labelled. It must not be converted into an accuracy claim without an independently annotated evaluation set.
+- The classifier is image-level and does not localize defect pixels. Grad-CAM or a detection/segmentation model is the appropriate next step when operators require visual explanations.
+- Before deployment, calibrate the threshold against the cost of missed defects and unnecessary manual review, then test lighting, camera, product, and line-speed shifts.
+- The model checkpoint is excluded from the repository due to its size. A release workflow should publish versioned checkpoints through an artifact registry or Git LFS after governance approval.
+
+See [`compliance/data_protection_checklist.md`](compliance/data_protection_checklist.md), [`compliance/model_card.md`](compliance/model_card.md), and [`docs/architecture.md`](docs/architecture.md) for the detailed controls.
+
+## Task alignment
+
+| Requested deliverable | Implementation status | Evidence |
+|---|---|---|
+| Real pharmaceutical dataset | Complete | Chukyo capsule archive, provenance document, dataset report |
+| Matching factory video | Complete | Real capsule-production MP4, full-frame annotated output |
+| Train and compare multiple models | Complete | Four baselines plus ConvNeXt-Tiny full fine-tuning |
+| Long-run training protocol | Complete | 100-epoch ceiling, scheduler, early stopping, saved histories |
+| Benchmark evidence | Complete | Metrics JSON/CSV, curves, confusion matrices, logs |
+| Professional application flow | Complete | Typed package, FastAPI service, structured logging, Docker |
+| Testing and compliance structure | Complete | `tests/`, `testing/`, `compliance/`, lint, mypy, artifact validation |
+| Professional UI | Complete | Industrial dashboard, screenshot, playable annotated video |
+| Task PDF and extracted notes kept private | Complete | Explicit `.gitignore` rules; neither file is in Git history |
+
+Overall, the repository is aligned with the requested engineering deliverables. The remaining production step is independent validation on labelled factory footage and deployment-specific acceptance testing; the current video demonstrates the complete inference pipeline but is not an accuracy dataset.
+
+## References
+
+- [Chukyo University industrial-vision archive](https://isl.sist.chukyo-u.ac.jp/)
+- [Shijiazhuang Huajia Medicinal Capsule Co., Ltd. video reference](https://www.hjjn.com.cn/hello-world/)
+- [TorchVision model catalog](https://docs.pytorch.org/vision/master/models.html)
+- [Controlled packaging inspection study](https://doi.org/10.1145/3816713.3820244)
+- [Pharmaceutical capsule inspection study](https://onlinelibrary.wiley.com/doi/10.1155/2022/4820618)
+- [RACNN capsule inspection study](https://onlinelibrary.wiley.com/doi/10.1155/2020/8887723)
