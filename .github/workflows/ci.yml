@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Python quality and evidence validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Format check
+        run: ruff format --check src scripts tests testing
+      - name: Lint
+        run: ruff check src scripts tests testing
+      - name: Type check
+        run: mypy --python-version 3.12 src
+      - name: Tests
+        run: pytest -q
+      - name: Validate committed evaluation evidence
+        run: python scripts/validate_artifacts.py --evaluation-dir artifacts/model-retrain/selected/evaluation
