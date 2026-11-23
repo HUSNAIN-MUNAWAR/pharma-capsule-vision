@@ -347,6 +347,10 @@ python scripts/validate_artifacts.py
 
 The evidence package includes successful format/lint checks, static typing, unit/API tests, and artifact validation. The tests cover data discovery/splits, model construction, video proposal utilities, and API behavior.
 
+### Current local revalidation
+
+On 2026-11-23 with Python 3.12: `pytest` passed 9 tests; Ruff format/check passed; `mypy --python-version 3.12 src` passed 12 source files; the selected ConvNeXt evaluation artifacts pass `scripts/validate_artifacts.py`; and the checked-in animation contains 1,440 frames at 24 FPS, 1,280×720, with 51,840 CSV decisions and 50,400 source-label matches (97.22%). This is a dataset-matched animation audit, not factory-camera accuracy. The model checkpoint and raw dataset remain intentionally excluded.
+
 ## Compliance and limitations
 
 - The capsule image dataset is public research data, not customer-owned production data. Do not represent these metrics as performance for a specific pharmaceutical company or factory.

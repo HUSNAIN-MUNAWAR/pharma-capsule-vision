@@ -30,12 +30,10 @@ models/*
 !artifacts/model-benchmark/
 !artifacts/model-benchmark/**
 artifacts/model-benchmark/**/best.pt
-artifacts/model-benchmark/**/errors.csv
 artifacts/model-benchmark/**/manifests/
 !artifacts/model-retrain/
 !artifacts/model-retrain/**
 artifacts/model-retrain/**/best.pt
-artifacts/model-retrain/**/errors.csv
 artifacts/model-retrain/**/manifests/
 !artifacts/pharma-inspection/
 !artifacts/pharma-inspection/dataset_report.json
