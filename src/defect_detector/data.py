@@ -6,7 +6,9 @@ import csv
 import hashlib
 import json
 import logging
+import random
 from collections import Counter
+from collections import defaultdict
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -179,6 +181,16 @@ def split_samples(
             "Each class needs at least 3 images for stratified train/validation/test splits"
         )
 
+    grouped = _duplicate_groups(samples)
+    if any(len(group) > 1 for group in grouped.values()):
+        return _split_without_duplicate_leakage(
+            samples,
+            grouped,
+            seed=seed,
+            validation_fraction=validation_fraction,
+            test_fraction=test_fraction,
+        )
+
     test_count = max(len(CLASS_NAMES), round(len(samples) * test_fraction))
     train_val, test = train_test_split(
         list(samples), test_size=test_count, random_state=seed, stratify=labels
@@ -200,6 +212,57 @@ def split_samples(
         split_counts = Counter(sample.class_name for sample in split)
         LOGGER.info("%s split: %d images (%s)", split_name, len(split), dict(split_counts))
     return result
+
+
+def _duplicate_groups(samples: Sequence[Sample]) -> dict[str, list[Sample]]:
+    groups: dict[str, list[Sample]] = defaultdict(list)
+    for sample in samples:
+        try:
+            digest = hashlib.sha256(sample.path.read_bytes()).hexdigest()
+        except OSError as exc:
+            raise InvalidImageError(f"Unable to read image for split validation: {sample.path}") from exc
+        groups[digest].append(sample)
+    for digest, group in groups.items():
+        if len({sample.label for sample in group}) > 1:
+            paths = ", ".join(str(sample.path) for sample in group)
+            raise DatasetError(f"Exact duplicate image bytes have conflicting labels: {paths} (sha256={digest})")
+    return groups
+
+
+def _split_without_duplicate_leakage(
+    samples: Sequence[Sample],
+    groups: dict[str, list[Sample]],
+    *,
+    seed: int,
+    validation_fraction: float,
+    test_fraction: float,
+) -> dict[str, list[Sample]]:
+    """Greedily allocate exact-content groups while preserving class coverage."""
+    split_names = ("train", "validation", "test")
+    targets = {
+        "train": len(samples) * (1 - validation_fraction - test_fraction),
+        "validation": len(samples) * validation_fraction,
+        "test": len(samples) * test_fraction,
+    }
+    buckets: dict[str, list[Sample]] = {name: [] for name in split_names}
+    counts: dict[str, Counter[int]] = {name: Counter() for name in split_names}
+    ordered = list(groups.values())
+    random.Random(seed).shuffle(ordered)
+    ordered.sort(key=len, reverse=True)
+    for group in ordered:
+        def score(name: str) -> tuple[float, int]:
+            proposed_size = len(buckets[name]) + len(group)
+            size_error = abs(proposed_size - targets[name])
+            missing_class_bonus = sum(1 for label in range(len(CLASS_NAMES)) if counts[name][label] == 0 and any(item.label == label for item in group))
+            return (size_error - missing_class_bonus * len(samples), proposed_size)
+
+        destination = min(split_names, key=score)
+        buckets[destination].extend(group)
+        counts[destination].update(item.label for item in group)
+
+    if any(counts[name][label] == 0 for name in split_names for label in range(len(CLASS_NAMES))):
+        raise DatasetError("Exact-duplicate group constraints cannot provide every class in every split")
+    return {name: sorted(items, key=lambda item: str(item.path)) for name, items in buckets.items()}
 
 
 def write_manifests(splits: dict[str, list[Sample]], data_dir: Path, output_dir: Path) -> None:

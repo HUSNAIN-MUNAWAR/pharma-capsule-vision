@@ -1,4 +1,5 @@
 from pathlib import Path
+from shutil import copyfile
 
 import pytest
 
@@ -23,3 +24,15 @@ def test_split_rejects_too_small_classes(tiny_dataset: Path) -> None:
     samples = discover_samples(tiny_dataset)
     with pytest.raises(DatasetError, match="at least 3"):
         split_samples(samples[:5])
+
+
+def test_exact_duplicate_bytes_stay_in_one_split(tiny_dataset: Path) -> None:
+    copyfile(tiny_dataset / "normal" / "normal-0.png", tiny_dataset / "normal" / "normal-copy.png")
+    samples = discover_samples(tiny_dataset)
+    splits = split_samples(samples, seed=11)
+    locations = {
+        split_name
+        for split_name, split in splits.items()
+        if any(sample.path.name in {"normal-0.png", "normal-copy.png"} for sample in split)
+    }
+    assert len(locations) == 1
